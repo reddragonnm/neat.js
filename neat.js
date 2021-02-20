@@ -163,7 +163,10 @@ class Brain {
             },
         };
         for (let node of this.nodes) {
-            info.nodes[node.state].push([node.x, node.y]);
+            info.nodes[node.state].push({
+                id: node.id,
+                pos: [node.x, node.y],
+            });
         }
         for (let conn of this.connections) {
             const fr = this.getNode(conn.fr);

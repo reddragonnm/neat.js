@@ -18,6 +18,11 @@ function randChoice<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+interface drawNode {
+  id: number;
+  pos: [number, number];
+}
+
 interface drawConn {
   fr: [number, number];
   to: [number, number];
@@ -26,10 +31,10 @@ interface drawConn {
 
 interface drawInfo {
   nodes: {
-    input: [number, number][];
-    hidden: [number, number][];
-    output: [number, number][];
-    bias: [number, number][];
+    input: drawNode[];
+    hidden: drawNode[];
+    output: drawNode[];
+    bias: drawNode[];
   };
 
   connections: {
@@ -293,7 +298,10 @@ class Brain {
     };
 
     for (let node of this.nodes) {
-      info.nodes[node.state].push([node.x, node.y]);
+      info.nodes[node.state].push({
+        id: node.id,
+        pos: [node.x, node.y],
+      });
     }
 
     for (let conn of this.connections) {

@@ -31,26 +31,48 @@ function setup() {
   createCanvas(600, 400);
 }
 
-function drawBrain(brain) {
+function drawBrain(brain, inputLabels, outputLabels) {
   const info = brain.getDrawInfo();
-  fill(255);
-  strokeWeight(3);
 
+  strokeWeight(5);
   for (let conn of info.connections.enabled) {
     stroke(conn.weight > 0 ? "dodgerblue" : "coral");
 
     line(
-      200 * conn.fr[1] + 200,
-      200 * conn.fr[0] + 100,
-      200 * conn.to[1] + 200,
-      200 * conn.to[0] + 100
+      300 * conn.fr[1] + 150,
+      300 * conn.fr[0] + 50,
+      300 * conn.to[1] + 150,
+      300 * conn.to[0] + 50
     );
   }
 
+  strokeWeight(3);
+  textSize(25);
   let n = info.nodes;
   for (let node of n.input.concat(n.bias.concat(n.output.concat(n.hidden)))) {
+    const posX = 300 * node.pos[1] + 150;
+    const posY = 300 * node.pos[0] + 50;
+
     stroke(0);
-    circle(200 * node[1] + 200, 200 * node[0] + 100, 30);
+    fill(255);
+    circle(posX, posY, 40);
+
+    textAlign(CENTER, CENTER);
+    noStroke();
+    fill(0);
+
+    if (node.id == 0) {
+      text("Bias", posX - 60, posY);
+    } else if (node.id <= Options.numInputs) {
+      text(inputLabels[node.id - 1], posX - 60, posY);
+    } else if (
+      Options.numInputs < node.id &&
+      node.id <= Options.numInputs + Options.numOutputs
+    ) {
+      text(outputLabels[node.id - Options.numInputs - 1], posX + 60, posY);
+    }
+
+    text(node.id.toString(), posX, posY);
   }
 }
 
@@ -60,15 +82,15 @@ function draw() {
   evalFunc(p.pool);
   p.epoch();
 
-  drawBrain(p.best);
+  drawBrain(p.best, ["inp1", "inp2"], ["out"]);
 
   console.log(p.data());
 
   fill(0);
   textSize(32);
   noStroke();
-  text(`Generation: ${p.gen}`, 40, 350);
-  text(`Max fitness: ${round(p.best.fitness, 3)}`, 300, 350);
+  text(`Gen: ${p.gen}`, 150, 350);
+  text(`Fitness: ${round(p.best.fitness, 3)}`, 350, 350);
 
   if (p.best.fitness > 3.9) {
     noLoop();
