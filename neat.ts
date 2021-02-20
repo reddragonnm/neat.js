@@ -18,6 +18,26 @@ function randChoice<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+interface drawConn {
+  fr: [number, number];
+  to: [number, number];
+  weight: number;
+}
+
+interface drawInfo {
+  nodes: {
+    input: [number, number][];
+    hidden: [number, number][];
+    output: [number, number][];
+    bias: [number, number][];
+  };
+
+  connections: {
+    enabled: drawConn[];
+    disabled: drawConn[];
+  };
+}
+
 class Innovation {
   innov: number;
   newConn: boolean;
@@ -119,10 +139,10 @@ class Options {
 }
 
 enum NodeState {
-  input,
-  hidden,
-  bias,
-  output,
+  input = "input",
+  hidden = "hidden",
+  bias = "bias",
+  output = "output",
 }
 
 class NodeGen {
@@ -255,6 +275,40 @@ class Brain {
         }
       }
     }
+  }
+
+  getDrawInfo(): drawInfo {
+    const info = {
+      nodes: {
+        input: [],
+        hidden: [],
+        output: [],
+        bias: [],
+      },
+
+      connections: {
+        enabled: [],
+        disabled: [],
+      },
+    };
+
+    for (let node of this.nodes) {
+      info.nodes[node.state].push([node.x, node.y]);
+    }
+
+    for (let conn of this.connections) {
+      const fr = this.getNode(conn.fr);
+      const to = this.getNode(conn.to);
+
+      const s = conn.enabled ? "enabled" : "disabled";
+      info.connections[s].push({
+        fr: [fr.x, fr.y],
+        to: [to.x, to.y],
+        weight: conn.weight,
+      });
+    }
+
+    return info;
   }
 
   addConn(): void {
@@ -666,6 +720,10 @@ class Population {
     this.speciesId = 0;
   }
 
+  data(): string {
+    return `${this.gen}, ${this.best.fitness}`;
+  }
+
   evaluate(
     evalFunc: (t: Brain[]) => void,
     numGen: number = Infinity,
@@ -676,7 +734,7 @@ class Population {
       this.epoch();
 
       if (report) {
-        console.log(this.gen, this.best.fitness);
+        console.log(this.data());
       }
 
       if (this.best.fitness >= Options.fitnessThreshold) {

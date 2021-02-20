@@ -79,10 +79,10 @@ Options.oldAgeThresh = 50;
 Options.oldAgeFitnessPenalty = 0.7;
 var NodeState;
 (function (NodeState) {
-    NodeState[NodeState["input"] = 0] = "input";
-    NodeState[NodeState["hidden"] = 1] = "hidden";
-    NodeState[NodeState["bias"] = 2] = "bias";
-    NodeState[NodeState["output"] = 3] = "output";
+    NodeState["input"] = "input";
+    NodeState["hidden"] = "hidden";
+    NodeState["bias"] = "bias";
+    NodeState["output"] = "output";
 })(NodeState || (NodeState = {}));
 class NodeGen {
     constructor(id, state, x, y) {
@@ -148,6 +148,34 @@ class Brain {
                 }
             }
         }
+    }
+    getDrawInfo() {
+        const info = {
+            nodes: {
+                input: [],
+                hidden: [],
+                output: [],
+                bias: [],
+            },
+            connections: {
+                enabled: [],
+                disabled: [],
+            },
+        };
+        for (let node of this.nodes) {
+            info.nodes[node.state].push([node.x, node.y]);
+        }
+        for (let conn of this.connections) {
+            const fr = this.getNode(conn.fr);
+            const to = this.getNode(conn.to);
+            const s = conn.enabled ? "enabled" : "disabled";
+            info.connections[s].push({
+                fr: [fr.x, fr.y],
+                to: [to.x, to.y],
+                weight: conn.weight,
+            });
+        }
+        return info;
     }
     addConn() {
         const valid = [];
@@ -445,12 +473,15 @@ class Population {
         this.brainId = this.pool.length;
         this.speciesId = 0;
     }
+    data() {
+        return `${this.gen}, ${this.best.fitness}`;
+    }
     evaluate(evalFunc, numGen = Infinity, report = true) {
         while (true) {
             evalFunc(this.pool);
             this.epoch();
             if (report) {
-                console.log(this.gen, this.best.fitness);
+                console.log(this.data());
             }
             if (this.best.fitness >= Options.fitnessThreshold) {
                 return [this.best, true];
