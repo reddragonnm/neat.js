@@ -64,6 +64,12 @@ function draw() {
 
   console.log(p.data());
 
+  fill(0);
+  textSize(32);
+  noStroke();
+  text(`Generation: ${p.gen}`, 40, 350);
+  text(`Max fitness: ${round(p.best.fitness, 3)}`, 300, 350);
+
   if (p.best.fitness > 3.9) {
     noLoop();
   }
